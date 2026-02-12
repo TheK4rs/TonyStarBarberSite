@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>توني ستار</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+
+<header>💈 توني ستار</header>
+
+
+<div class="box" id="login">
+<h2>تسجيل الدخول</h2>
+<input id="user" placeholder="الاسم">
+<input id="pass" type="password" placeholder="كلمة المرور">
+<button onclick="login()">دخول</button>
+</div>
+
+
+<div class="box hidden" id="booking">
+<h2>اختر الموعد</h2>
+<input id="name" placeholder="اسم الزبون">
+<input id="phone" placeholder="رقم الهاتف">
+<input id="date" type="date">
+
+
+<h3>الأوقات المتاحة</h3>
+<div id="slots"></div>
+
+
+</div>
+
+
+<div class="box hidden">
+<h2>📅 المواعيد المحجوزة</h2>
+<div id="calendar"></div>
+</div>
+
+
+<script src="js/calendar.js"></script>
+<script src="js/app.js"></script>
+
+
+</body>
+</html>
