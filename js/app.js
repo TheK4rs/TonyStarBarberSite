@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGuntB3ZQldgqm6nkxuLQegZ82XdFJi-A3opgWWg1YuM_NF14B0hSBI0yD9dei5h2g/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-1Wh-xg45aYhNBcT2EhmnswRNe_hvQnNP7k5RhybnVBhXGRWcrZoElEAhyamYAs_3/exec";
 
 const calendar = document.getElementById("calendar");
 const monthYear = document.getElementById("monthYear");
@@ -135,3 +135,4 @@ document.getElementById("next").onclick=()=>{
 };
 
 renderCalendar();
+
