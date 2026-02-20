@@ -1,79 +1,137 @@
-const API="https://script.google.com/macros/s/AKfycbxVNpIn2qdOBa3FRqOknena5E2ar2dp1wBUDgPFMOqf2NCcm-DHOeDn00_yCQIu5Jmb/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGuntB3ZQldgqm6nkxuLQegZ82XdFJi-A3opgWWg1YuM_NF14B0hSBI0yD9dei5h2g/exec";
 
+const calendar = document.getElementById("calendar");
+const monthYear = document.getElementById("monthYear");
+const timesDiv = document.getElementById("times");
+const form = document.getElementById("bookingForm");
+const statusText = document.getElementById("status");
 
-const TIMES=[
-"10:00","10:30","11:00","11:30",
-"12:00","12:30","13:00","13:30",
-"14:00","14:30","15:00","15:30",
-"16:00","16:30","17:00","17:30",
-"18:00","18:30","19:00","19:30"
-];
+let currentDate = new Date();
+let selectedDate = null;
+let selectedTime = null;
 
+// وقت العمل
+const OPEN_HOUR = 9;   // 9 صباحًا
+const CLOSE_HOUR = 19; // 7 مساءً
 
-let selectedTime=null;
-
-
-function login(){
-if(user.value && pass.value){
-login.classList.add('hidden');
-booking.classList.remove('hidden');
-renderSlots([]);
-loadCalendar();
-}
-}
-
-
-date.onchange=async()=>{
-const res=await fetch(API);
-const booked=await res.json();
-
-
-const taken=booked
-.filter(b=>b.date===date.value)
-.map(b=>b.time);
-
-
-renderSlots(taken);
+function generateTimeSlots(){
+ const slots = [];
+ for(let hour = OPEN_HOUR; hour < CLOSE_HOUR; hour++){
+  slots.push(formatTime(hour,0));
+  slots.push(formatTime(hour,30));
+ }
+ return slots;
 }
 
-
-function renderSlots(taken){
-slots.innerHTML="";
-
-
-TIMES.forEach(t=>{
-const btn=document.createElement('button');
-btn.innerText=t;
-
-
-if(taken.includes(t)){
-btn.classList.add('booked');
-btn.disabled=true;
-}else{
-btn.onclick=()=>book(t);
+function formatTime(h,m){
+ return String(h).padStart(2,'0')+":"+String(m).padStart(2,'0');
 }
 
+function renderCalendar(){
+ calendar.innerHTML="";
+ const year = currentDate.getFullYear();
+ const month = currentDate.getMonth();
 
-slots.appendChild(btn);
+ monthYear.textContent = currentDate.toLocaleDateString("ar",{month:"long",year:"numeric"});
+
+ const firstDay = new Date(year,month,1).getDay();
+ const daysInMonth = new Date(year,month+1,0).getDate();
+
+ for(let i=0;i<firstDay;i++){
+  calendar.appendChild(document.createElement("div"));
+ }
+
+ for(let day=1;day<=daysInMonth;day++){
+  const dateObj = new Date(year,month,day);
+  const iso = dateObj.toISOString().split("T")[0];
+
+  const div = document.createElement("div");
+  div.className="day";
+  div.textContent=day;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  if(dateObj < today){
+   div.classList.add("disabled");
+  } else {
+   div.onclick=()=>{
+    document.querySelectorAll(".day").forEach(d=>d.classList.remove("selected"));
+    div.classList.add("selected");
+    selectedDate=iso;
+    loadTimes();
+   };
+  }
+
+  calendar.appendChild(div);
+ }
+}
+
+function loadTimes(){
+ if(!selectedDate) return;
+
+ fetch(SCRIPT_URL+"?date="+selectedDate)
+ .then(res=>res.json())
+ .then(booked=>{
+
+  timesDiv.innerHTML="";
+  selectedTime=null;
+
+  const allSlots = generateTimeSlots();
+
+  allSlots.forEach(t=>{
+   const slot=document.createElement("div");
+   slot.className="time-slot";
+   slot.textContent=t;
+
+   if(booked.includes(t)){
+    slot.classList.add("disabled");
+   } else {
+    slot.onclick=()=>{
+     document.querySelectorAll(".time-slot").forEach(s=>s.classList.remove("selected"));
+     slot.classList.add("selected");
+     selectedTime=t;
+    };
+   }
+
+   timesDiv.appendChild(slot);
+  });
+ });
+}
+
+form.addEventListener("submit",function(e){
+ e.preventDefault();
+
+ const name=document.getElementById("name").value;
+ const phone=document.getElementById("phone").value;
+
+ if(!selectedDate||!selectedTime){
+  statusText.textContent="اختر اليوم والوقت";
+  return;
+ }
+
+ fetch(SCRIPT_URL,{
+  method:"POST",
+  body:JSON.stringify({name,phone,date:selectedDate,time:selectedTime})
+ })
+ .then(()=>{
+  statusText.textContent="تم الحجز بنجاح";
+  form.reset();
+  selectedDate=null;
+  selectedTime=null;
+  timesDiv.innerHTML="";
+  renderCalendar();
+ });
 });
-}
 
-
-async function book(time){
-selectedTime=time;
-
-
-const data={
-name:name.value,
-phone:phone.value,
-date:date.value,
-time:time
+document.getElementById("prev").onclick=()=>{
+ currentDate.setMonth(currentDate.getMonth()-1);
+ renderCalendar();
 };
 
+document.getElementById("next").onclick=()=>{
+ currentDate.setMonth(currentDate.getMonth()+1);
+ renderCalendar();
+};
 
-await fetch(API,{method:"POST",body:JSON.stringify(data)});
-
-
-alert("تم الحجز بنجاح");
-loadCalendar();
-}
+renderCalendar();
